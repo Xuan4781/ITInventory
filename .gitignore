@@ -1,0 +1,13 @@
+config.env
+.env 
+# Node.js stuff
+node_modules/
+.env
+.DS_Store
+dist/
+build/
+coverage/
+
+# OS/Editor
+.vscode/
+*.log
