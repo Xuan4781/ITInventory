@@ -1,6 +1,6 @@
 import express from "express";
-import { borrowedBooks, getBorrowedBooksForAdmin, recordBorrowedBook, returnBorrowBook } from "../controllers/borrowControllers";
-import { isAuthenticated , isAuthorized} from "../middlewares/authMiddleware";
+import { borrowedBooks, getBorrowedBooksForAdmin, recordBorrowedBook, returnBorrowBook } from "../controllers/borrowControllers.js";
+import { isAuthenticated , isAuthorized} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
