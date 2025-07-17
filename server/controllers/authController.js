@@ -4,6 +4,7 @@ import { User } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sendVerificationCode } from "../utils/sendVerificationCode.js";
+import { sendToken } from "../utils/sendToken.js";
 
 export const register = catchAsyncErrors(async (req, res, next) => {
     try {
@@ -72,14 +73,14 @@ export const verifyOTP = catchAsyncErrors(async(req, res, next) => {
             return next(new ErrorHandler("Invalid OTP.", 400))
         }
         const currentTime = Date.now();
-        const verificationCodeExpire = new Date(user.verificationCodeExpire).getTime();
+        const verificationCodeExpired = new Date(user.verificationCodeExpired).getTime();
 
-        if(currentTime > verificationCodeExpire){
+        if(currentTime > verificationCodeExpired){
             return next(new ErrorHandler("OTP expired", 400))
         }
         user.accountVerified = true;
         user.verificationCode = null;
-        user.verificationCodeExpire = null;
+        user.verificationCodeExpired = null;
         await user.save({validateModifiedOnly: true});
 
         sendToken(user, 200, "AccountVerified.", res);
@@ -88,3 +89,19 @@ export const verifyOTP = catchAsyncErrors(async(req, res, next) => {
         return next(new ErrorHandler("Internal server error", 500));
     }
 })
+
+export const login = catchAsyncErrors(async (req, res, next) => {
+    const {email, password} = req.body;
+    if(!email || !password){
+        return next(new ErrorHandler("Please enter all fields.", 400));
+    }
+    const user = await User.findOne({email, accountVerified: true}).select("+password");
+    if(!user){
+        return next(new ErrorHandler("Invalid email or password.", 400))
+    }
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatched){
+        return next(new ErrorHandler("Invalid email or password.", 400));
+    }
+    sendToken(user, 200, "User login successfully.", res);
+});
