@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 export const connectDB = async () => {
     mongoose.connect(process.env.MONGO_URI, {
-        dbName: "ITinventory Management"
+        dbName: "ITinventory"
     }).then(()=>{
         console.log(`Database connected successfully.`);
     }).catch(err=>{
