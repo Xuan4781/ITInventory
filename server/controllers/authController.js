@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { sendVerificationCode } from "../utils/sendVerificationCode.js";
 import { sendToken } from "../utils/sendToken.js";
 
+
 export const register = catchAsyncErrors(async (req, res, next) => {
     try {
         const { name, email, password} = req.body;
