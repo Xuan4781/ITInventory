@@ -1,7 +1,7 @@
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { User } from "../models/userModel.js";
-import {bcyrpt} from "bcrypt"
+import bcyrpt from "bcrypt"
 import {v2 as cloudinary} from "cloudinary"
 
 export const getAllUsers = catchAsyncErrors(async(req, res, next) => {
@@ -44,7 +44,7 @@ export const registerNewAdmin = catchAsyncErrors(async(req, res, next)=>{
         );
         return next(new ErrorHandler("Failed to upload avatar image to cloudinary ", 500));
     }
-    const user = await User.create({
+    const admin = await User.create({
         name, email, password: hashedPassword,
         role: "Admin",
         accountVerified: true,
