@@ -11,11 +11,13 @@ import { RiAdminFill } from "react-icons/ri";
 import { useDispatch, useSelector} from "react-redux";
 import { logout, resetAuthSlice } from "../store/slices/authSlice";
 import {toast} from "react-toastify";
+import { toggleAddNewAdminPopup } from "../store/slices/popUpSlice";
+import AddNewAdmin from "../popups/AddNewAdmin";
 
 
 const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
   const dispatch = useDispatch();
-  // const {} = useSelector(state => state.popup);
+  const { addNewAdminPopup } = useSelector(state => state.popup);
   const { loading, error, message, user, isAuthenticated} = useSelector(state => state.auth);
 
   const handleLogout = ()=> {
@@ -51,7 +53,7 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
           <span className="text-black">Devices</span>
         </button>
         {
-          isAuthenticated && user ?.role === "Admin" && (
+          //isAuthenticated && user?.role === "Admin" && (
           <>
             <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> setSelectedComponent("Catalog")}>
               <img src={catalogIcon} alt="device-icon"/>
@@ -61,28 +63,27 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
               <img src={usersIcon} alt="device-icon"/>
               <span className="text-black">Users</span>
             </button>
-            <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2"  onClick={()=> setSelectedComponent("Users")} >
-               <img src={usersIcon} alt="device-icon"/>
-              <span className="text-black">Users</span>
+            <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2"  onClick={()=> dispatch(toggleAddNewAdminPopup())} >
               <RiAdminFill className="w-6 h-6"/> <span>Add New Admin</span>
             </button>
           </>
-          )}
+          //)
+          }
           {isAuthenticated && user?.role === "User" && (
             <>
             <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> setSelectedComponent("My Borrowed Books")}>
-              <img src={catalogIcon} alt="device-icon"/>
+              <img src={catalogIcon} alt="icon"/>
               <span className="text-black">My Borrowed Books</span>
             </button>
             </>
           )}
-          <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" /* onClick={()=> setSelectedComponent("My Borrowed Books")} */>
+          <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> setSelectedComponent("My Borrowed Books")}>
               <img src={settingIcon} alt="icon"/>
               <span className="text-black">Update Credentials </span>
             </button>
       </nav>
       <div className="px-6 py-4">
-        <button className="py-2 font-medium text-center bg-transparent rounded-md hover:cursor-pointer flex items-center justify-center space-x-5 mx-auto w-fit">
+        <button className="py-2 font-medium text-center bg-transparent rounded-md hover:cursor-pointer flex items-center justify-center space-x-5 mx-auto w-fit" onClick={handleLogout}>
           <img src={logoutIcon} alt="icon"/>
         <span>Log Out</span>
       </button>
@@ -90,6 +91,7 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
       <img src={closeIcon} alt="icon" onClick={()=> 
         setIsSideBarOpen(!isSideBarOpen)} className="h-fit w-fit absolute top-0 right-4 mt-4 block md:hidden"/>
     </aside>
+    {addNewAdminPopup && <AddNewAdmin/>}
     </>
   );
 };

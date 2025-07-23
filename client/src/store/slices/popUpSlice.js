@@ -1,4 +1,4 @@
-import {createSlice} from "@redux.js/toolkit"
+import {createSlice} from "@reduxjs/toolkit"
 
 const popupSlice = createSlice({
     name: "popup",
