@@ -71,12 +71,51 @@ const Register = () => {
 
 
 
-          <p></p>
+          <p className="text-black-800 text-center mb-12">
+            Please provide your information to sign up.
+          </p>
+      <form onSubmit={handleRegister}>
+        <div className="mb-2">
+          <input
+           type="name" 
+           value={name}
+           onChange={(e)=>setName(e.target.value)} 
+           placeholder="Full Name"
+           className="w-full px-4 py-3 border 
+           border-black rounded-md focus-outline-none"/>
+        </div>
+        <div className="mb-2">
+          <input
+           type="email" 
+           value={email}
+           onChange={(e)=>setEmail(e.target.value)} 
+           placeholder="Email"
+           className="w-full px-4 py-3 border 
+           border-black rounded-md focus-outline-none"/>
+        </div>
+        <div className="mb-2">
+          <input
+           type="password" 
+           value={password}
+           onChange={(e)=>setPassword(e.target.value)} 
+           placeholder="Password"
+           className="w-full px-4 py-3 border 
+           border-black rounded-md focus-outline-none"/>
+        </div>
+        <div className="block md:hidden font-semibold mt-5">
+          <p>
+            Already have Account?
+            <Link to="/login" className="text-sm text-gray-500 hover:underline">Sign In</Link>
+          </p>
+        </div>
+        <button type="submit" className="border-2 mt-5 border-black w-full font-semibold bg-black text-white py-2 rounded-lg hover:bg-white hover:text-black transition">SIGN UP</button>
+        
+      </form>
 
 
 
 
-          
+
       </div>
     </div>
 
