@@ -6,7 +6,7 @@ import { toggleSettingPopup } from "../store/slices/popUpSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
-  const {} = useSelector((state)=> state.auth);
+  const {user} = useSelector((state)=> state.auth);
 
   const [currentTime, setCurrentTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
@@ -20,7 +20,7 @@ const Header = () => {
       const ampm = now.getHours() >= 12 ? "PM" : "AM";
       setCurrentTime(`${hours}:${minutes}:${ampm}`);
       
-      const options = {month: "short", dat: "numeric", year:"numeric"};
+      const options = {month: "short", day: "numeric", year:"numeric"};
       setCurrentDate(now.toLocaleDateString("en-US", options))
     };
     updateDateTime();
@@ -46,7 +46,7 @@ const Header = () => {
         <span>{currentDate}</span>
       </div>
       <span className="bg-black h-14 w-[2px]"/>
-      <img src={settingIcon} alt="setting-icon" className="w-8 h-8" onClick={()=> toggleSettingPopup()}/>
+      <img src={settingIcon} alt="setting-icon" className="w-8 h-8" onClick={()=> dispatch(toggleSettingPopup())}/>
     </div>
 
   </header>

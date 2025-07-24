@@ -33,6 +33,8 @@ const Register = () => {
 
   useEffect(()=>{
     if(message){
+      toast.success(message);
+      dispatch(resetAuthSlice());
       navigateTo(`/otp-verification/${email}`)
     }
     if(error){
@@ -49,7 +51,7 @@ const Register = () => {
   
   <div className="flex flex-col justify-center md:flex-row h-screen">
     {/*Left Side*/}
-    <div className="hidden w-full md:w-1/2 bg-gray-200 text-black md:flex flex-col items-center justify-center p-8 rounded-tr-[80px] rounded-br-[80px]">
+    <div className="hidden w-full md:w-1/2 bg-gray-100 text-black md:flex flex-col items-center justify-center p-8 rounded-tr-[80px] rounded-br-[80px]">
       <div className="text-center h-[376px]">
         <div className="flex justify-center mb-12">
           <img src ={logo_with_title} alt="logo" className="mb-12 h-44 w-auto"/>

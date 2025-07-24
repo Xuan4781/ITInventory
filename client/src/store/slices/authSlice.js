@@ -40,19 +40,19 @@ const authSlice = createSlice({
             state.loading = false;
             state.error = action.payload;
         },
-        LoginRequest(state){
+        loginRequest(state){
             state.loading = true;
             state.error = null;
             state.message = null;
         },
-        LoginSuccess(state, action){
+        loginSuccess(state, action){
             state.loading = false;
             state.message = action.payload.message;
             state.isAuthenticated = true;
             state.user=action.payload.user;
 
         },
-        LoginFailed(state, action){
+        loginFailed(state, action){
             state.loading = false;
             state.error = action.payload;
         },
@@ -96,7 +96,7 @@ const authSlice = createSlice({
             state.loading = false;
             state.user = action.payload.message;
         },
-        forgotPasswordFailed(state){
+        forgotPasswordFailed(state, action){
             state.loading = false;
             state.error = action.payload;
             
@@ -140,8 +140,8 @@ export const OTPVerification = (email, otp) => async(dispatch) => {
         dispatch(authSlice.actions.OTPVerificationFailed(error.response.data.message))
     })
 };
-export const Login = (data) => async(dispatch) => {
-    dispatch(authSlice.actions.LoginRequest())
+export const login = (data) => async(dispatch) => {
+    dispatch(authSlice.actions.loginRequest())
     await axios.post("http://localhost:4000/api/v1/auth/login", 
         data, 
         {
@@ -150,9 +150,9 @@ export const Login = (data) => async(dispatch) => {
             "Content-Type": "application/json",
         },
     }).then(res=>{
-        dispatch(authSlice.actions.LoginSuccess(res.data))
+        dispatch(authSlice.actions.loginSuccess(res.data))
     }).catch(error=>{
-        dispatch(authSlice.actions.LoginFailed(error.response.data.message))
+        dispatch(authSlice.actions.loginFailed(error.response.data.message))
     })
 };
 export const logout = () => async(dispatch) => {

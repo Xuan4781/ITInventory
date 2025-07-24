@@ -11,7 +11,7 @@ import { RiAdminFill } from "react-icons/ri";
 import { useDispatch, useSelector} from "react-redux";
 import { logout, resetAuthSlice } from "../store/slices/authSlice";
 import {toast} from "react-toastify";
-import { toggleAddNewAdminPopup } from "../store/slices/popUpSlice";
+import { toggleAddNewAdminPopup, toggleSettingPopup } from "../store/slices/popUpSlice";
 import AddNewAdmin from "../popups/AddNewAdmin";
 
 
@@ -53,7 +53,7 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
           <span className="text-black">Devices</span>
         </button>
         {
-          //isAuthenticated && user?.role === "Admin" && (
+          isAuthenticated && user?.role === "Admin" && (
           <>
             <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> setSelectedComponent("Catalog")}>
               <img src={catalogIcon} alt="device-icon"/>
@@ -67,7 +67,7 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
               <RiAdminFill className="w-6 h-6"/> <span>Add New Admin</span>
             </button>
           </>
-          //)
+          )
           }
           {isAuthenticated && user?.role === "User" && (
             <>
@@ -77,7 +77,7 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
             </button>
             </>
           )}
-          <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> setSelectedComponent("My Borrowed Books")}>
+          <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> dispatch(toggleSettingPopup())}>
               <img src={settingIcon} alt="icon"/>
               <span className="text-black">Update Credentials </span>
             </button>
