@@ -3,8 +3,6 @@ import axios from "axios"
 import { toast } from "react-toastify"
 
 
-
-
 const userSlice = createSlice({
     name: "user",
     initialState: {
@@ -22,13 +20,13 @@ const userSlice = createSlice({
         fetchAllUsersFailed(state){
             state.loading = false;
         },
-        AddNewAdminRequest(state){
+        addNewAdminRequest(state){
             state.loading = true;
         },
-        AddNewAdminSuccess(state){
+        addNewAdminSuccess(state){
             state.loading = false;
         },
-        AddNewAdminFailed(state){
+        addNewAdminFailed(state){
             state.loading = false;
         },
     }
@@ -44,18 +42,18 @@ export const fetchAllUsers = ()=> async(dispatch)=> {
 }
 
 
-export const AddNewAdmin = (data)=>async(dispatch)=> {
-    dispatch(userSlice.actions.AddNewAdminRequest());
+export const addNewAdmin = (data)=>async(dispatch)=> {
+    dispatch(userSlice.actions.addNewAdminRequest());
     await axios.post("http://localhost:4000/api/v1/user/add/new-admin", data, {
         withCredentials:true,
         headers: {
             "Content-Type": "multipart/form-data",
         }
     }).then(res=>{
-        dispatch(userSlice.actions.AddNewAdminSuccess());
+        dispatch(userSlice.actions.addNewAdminSuccess());
         toast.success(res.data.message);
     }).catch(err=>{
-        dispatch(userSlice.actions.AddNewAdminFailed());
+        dispatch(userSlice.actions.addNewAdminFailed());
         toast.error(err.response.data.message)
     })
 }

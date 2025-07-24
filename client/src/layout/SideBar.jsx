@@ -13,11 +13,12 @@ import { logout, resetAuthSlice } from "../store/slices/authSlice";
 import {toast} from "react-toastify";
 import { toggleAddNewAdminPopup, toggleSettingPopup } from "../store/slices/popUpSlice";
 import AddNewAdmin from "../popups/AddNewAdmin";
+import SettingPopup from "../popups/SettingPopup"
 
 
 const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
   const dispatch = useDispatch();
-  const { addNewAdminPopup } = useSelector(state => state.popup);
+  const { addNewAdminPopup, SettingPopup } = useSelector(state => state.popup);
   const { loading, error, message, user, isAuthenticated} = useSelector(state => state.auth);
 
   const handleLogout = ()=> {
@@ -92,6 +93,7 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
         setIsSideBarOpen(!isSideBarOpen)} className="h-fit w-fit absolute top-0 right-4 mt-4 block md:hidden"/>
     </aside>
     {addNewAdminPopup && <AddNewAdmin/>}
+    {SettingPopup && <SettingPopup/>}
     </>
   );
 };
