@@ -17,12 +17,23 @@ const App = () => {
   const dispatch = useDispatch();
 
 
-  useEffect(()=> {
+  // useEffect(()=> {
+  //   dispatch(getUser());
+  //   if(isAuthenticated && user?.role==="Admin"){
+  //     dispatch(fetchAllUsers());
+  //   }
+  // },[isAuthenticated, user, dispatch])
+
+  useEffect(() => {
     dispatch(getUser());
-    if(isAuthenticated && user?.role==="Admin"){
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "Admin") {
       dispatch(fetchAllUsers());
     }
-  },[])
+  }, [isAuthenticated, user, dispatch]);
+
 
   return <Router>
     <Routes>

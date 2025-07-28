@@ -18,7 +18,7 @@ import SettingPopup from "../popups/SettingPopup"
 
 const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
   const dispatch = useDispatch();
-  const { addNewAdminPopup, SettingPopup } = useSelector(state => state.popup);
+  const { addNewAdminPopup, settingPopup } = useSelector(state => state.popup);
   const { loading, error, message, user, isAuthenticated} = useSelector(state => state.auth);
 
   const handleLogout = ()=> {
@@ -74,14 +74,10 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
             <>
             <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> setSelectedComponent("My Borrowed Books")}>
               <img src={catalogIcon} alt="icon"/>
-              <span className="text-black">My Borrowed Books</span>
+              <span className="text-black">My Borrowed Devices</span>
             </button>
             </>
           )}
-          <button className="w-full py-2 font-medium bg-transparent rounded-md hover:cursor-pointer flex items-center space-x-2" onClick={()=> dispatch(toggleSettingPopup())}>
-              <img src={settingIcon} alt="icon"/>
-              <span className="text-black">Update Credentials </span>
-            </button>
       </nav>
       <div className="px-6 py-4">
         <button className="py-2 font-medium text-center bg-transparent rounded-md hover:cursor-pointer flex items-center justify-center space-x-5 mx-auto w-fit" onClick={handleLogout}>
@@ -93,7 +89,7 @@ const SideBar = ({ isSideBarOpen, setIsSideBarOpen, setSelectedComponent }) => {
         setIsSideBarOpen(!isSideBarOpen)} className="h-fit w-fit absolute top-0 right-4 mt-4 block md:hidden"/>
     </aside>
     {addNewAdminPopup && <AddNewAdmin/>}
-    {SettingPopup && <SettingPopup/>}
+    {settingPopup && <SettingPopup/>}
     </>
   );
 };

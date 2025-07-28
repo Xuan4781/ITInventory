@@ -45,7 +45,9 @@ const AddNewAdmin = () => {
             <img src={keyIcon} alt="key-icon" className="bg-gray-100 p-5 rounded-lg"/>
             <h3 className="text-xl font-bold">Add New Admin</h3>
           </div>
-          <img src= {closeIcon} alt="close" onClick={()=>dispatch(toggleAddNewAdminPopup())}></img>
+          <img src= {closeIcon} 
+          alt="close" 
+          onClick={()=>dispatch(toggleAddNewAdminPopup())}></img>
         </header>
         <form onSubmit={handleAddNewAdmin}>
           {/*Avatar Selection*/}
@@ -54,7 +56,7 @@ const AddNewAdmin = () => {
               <img src={avatarPreview ? avatarPreview: placeHolder} alt="avatar" className="w-24 h-24 rounded-full object-cover"></img>
               <input type="file" 
               id="avatarInput" 
-              accept="Image/*" 
+              accept="image/*" 
               className="hidden"
               onChange={handleImageChange}
               >
@@ -85,8 +87,8 @@ const AddNewAdmin = () => {
             <button type="button" onClick={()=> dispatch(toggleAddNewAdminPopup())} className="px-4 py-2
             bg-gray-200 rounded-md hover:bg-gray-300"> Close 
             </button>
-            <button type="submit" disabled={loading} onClick={()=> dispatch(toggleAddNewAdminPopup())}
-              className="px-4 py-2 bg-black rounded-md hover:bg-gray-800 text-white">
+            <button type="submit" 
+              className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 text">
               Add
             </button>
           </div>
