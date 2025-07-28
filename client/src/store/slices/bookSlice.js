@@ -38,6 +38,11 @@ const bookSlice = createSlice({
             state.error = null;
             state.message = null;
             state.loading = false;
+        },
+        resetBookSlice(state){
+            state.error = null;
+            state.message = null;
+            state.loading = false;
         }
     }
 })
@@ -64,5 +69,7 @@ export const addBook = ()=> async(dispatch) =>{
         dispatch(bookSlice.actions.addBooksFailed(err.response.data.message));
     })
 }
-
+export const resetBookSlice = ()=>(dispatch)=>{
+    dispatch(bookSlice.actions.resetBookSlice())
+}
 export default bookSlice.reducer;
