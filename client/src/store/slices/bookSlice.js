@@ -13,7 +13,7 @@ const bookSlice = createSlice({
     reducers:{
         fetchBooksRequest(state){
             state.loading = true;
-            state.error = null,
+            state.error = null;
             state.message = null;
         },
         fetchBooksSuccess(state, action){
@@ -34,8 +34,8 @@ const bookSlice = createSlice({
             state.loading = false;
             state.message = action.payload;
         },
-        addBooksFailed(state){
-            state.error = null;
+        addBooksFailed(state, action){
+            state.error = action.payload;
             state.message = null;
             state.loading = false;
         },
@@ -56,7 +56,7 @@ export const fetchAllBooks = ()=> async(dispatch) => {
     })
 }
 
-export const addBook = ()=> async(dispatch) =>{
+export const addBook = (data)=> async(dispatch) =>{
     dispatch(bookSlice.actions.addBooksRequest());
     await axios.post("http://localhost:4000/api/v1/book/admin/add",data,{
         withCredentials:true,
@@ -64,7 +64,7 @@ export const addBook = ()=> async(dispatch) =>{
             "Content-Type":"application/json"
         }
     }).then((res)=>{
-        bookSlice.actions.addBooksSuccess(res.data.message);
+        dispatch(bookSlice.actions.addBooksSuccess(res.data.message));
     }).catch((err)=>{
         dispatch(bookSlice.actions.addBooksFailed(err.response.data.message));
     })

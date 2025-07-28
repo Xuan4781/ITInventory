@@ -11,7 +11,7 @@ import MyBorrowedBooks from "../components/MyBorrowedBooks"
 import Users from "../components/Users"
 const Home = () => {
   const[isSideBarOpen, setIsSideBarOpen] = useState(false);
-  const[selectedComponent, setSelectedComponent] = useState("");
+  const[selectedComponent, setSelectedComponent] = useState("Books");
 
   const {user, isAuthenticated} = useSelector(state => state.auth);
 
