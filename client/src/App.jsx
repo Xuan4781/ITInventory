@@ -10,6 +10,8 @@ import {ToastContainer} from "react-toastify";
 import { getUser } from "./store/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllUsers } from "./store/slices/userSlice";
+import { fetchAllBooks } from "./store/slices/bookSlice";
+import { fetchUserBorrowedBooks } from "./store/slices/borrowSlice";
 
 
 const App = () => {
@@ -26,15 +28,18 @@ const App = () => {
 
   useEffect(() => {
     dispatch(getUser());
-  }, [dispatch]);
-
-  useEffect(() => {
+    dispatch(fetchAllBooks());
+    if (isAuthenticated && user?.role === "User") {
+      dispatch(fetchUserBorrowedBooks());
+    }
     if (isAuthenticated && user?.role === "Admin") {
       dispatch(fetchAllUsers());
     }
-  }, [isAuthenticated, user, dispatch]);
+  }, [isAuthenticated]);
 
 
+
+ 
   return <Router>
     <Routes>
       <Route path ="/" element={<Home/>}/>

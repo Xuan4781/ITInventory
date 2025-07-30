@@ -38,7 +38,7 @@ const Home = () => {
                   <AdminDashboard/>
                 )
                 break;
-                case "Books":
+                case "Devices":
                   return <BookManagement/>
                   break;
                 case "Catalog":
@@ -52,7 +52,7 @@ const Home = () => {
                   }
                 break;
                 case "My Borrowed Books":
-                  if(user.role === "Admin"){
+                  if(user.role === "Admin" || user.role === "User"){
                     return <MyBorrowedBooks/>
                   }
                   break;

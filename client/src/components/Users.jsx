@@ -12,9 +12,8 @@ const Users = () => {
     const formattedTime = `${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}:${String(date.getSeconds()).padStart(2,"0")}`;
     const result = `${formattedDate} ${formattedTime}`;
     return result
-    
-    
   }
+  
   const result = formatDate("2025-02-11T12:49:11.961+00:00")
   
   return <>
