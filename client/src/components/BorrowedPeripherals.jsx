@@ -132,10 +132,10 @@ const BorrowedPeripherals = () => {
                     <tr key={item._id} className={(index + 1) % 2 === 0 ? "bg-gray-50" : ""}>
                       <td className="px-4 py-2">{item.equipment}</td>
                       <td className="px-4 py-2">{item.borrowerName}</td>
-                      <td className="px-4 py-2">{new Date(item.dateLoaned).toLocaleDateString()}</td>
+                      <td className="px-4 py-2">{new Date(item.dateLoaned).toLocaleDateString("en-US", {timeZone: "America/New_York",})}</td>
                       <td className="px-4 py-2">{item.returned ? "Yes" : "No"}</td>
                       <td className="px-4 py-2">
-                        {item.returnedDate ? new Date(item.returnedDate).toLocaleDateString() : "—"}
+                        {item.returnedDate ? new Date(item.returnedDate).toLocaleDateString("en-US", {timeZone: "America/New_York"}) : "—"}
                       </td>
                       {isAuthenticated && user?.role === "Admin" && (
                         <td className="px-4 py-2 flex space-x-2 justify-center">

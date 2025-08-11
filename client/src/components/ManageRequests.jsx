@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Sidebar from "../layout/SideBar";
 import Header from "../layout/Header";
 
 const ManageRequests = () => {
+  const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,8 +26,8 @@ const ManageRequests = () => {
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    dispatch(fetchRequests());
+  }, [dispatch]);
 
   const updateStatus = async (id, newStatus) => {
     try {

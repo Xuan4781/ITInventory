@@ -10,7 +10,7 @@ export const getAllPeripheralLoans = catchAsyncErrors(async (req, res, next) => 
 
 // ➕ Create a new peripheral loan
 export const createPeripheralLoan = catchAsyncErrors(async (req, res, next) => {
-  const { equipment, borrowerName, dateLoaned, returned } = req.body;
+  const { equipment, borrowerName, dateLoaned, returned, returnedDate } = req.body;
 
   if (!equipment || !borrowerName) {
     return next(new ErrorHandler("Equipment and borrower name are required", 400));
@@ -21,6 +21,7 @@ export const createPeripheralLoan = catchAsyncErrors(async (req, res, next) => {
     borrowerName,
     dateLoaned,
     returned,
+    ...(returned && returnedDate ? { returnedDate } : {}),
   });
 
   res.status(201).json({ success: true, peripheral });

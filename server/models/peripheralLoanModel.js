@@ -17,6 +17,10 @@ const peripheralLoanSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  returnedDate: {
+    type: Date,
+    default: null,
+  },
 });
 
 export const PeripheralLoan = mongoose.model("PeripheralLoan", peripheralLoanSchema);

@@ -20,47 +20,81 @@ const AddPeripheralPopup = ({ peripheralToEdit, onClose }) => {
   const [returnedDate, setReturnedDate] = useState("");
 
   useEffect(() => {
-    if (isEditMode && peripheralToEdit) {
-      setEquipment(peripheralToEdit.equipment || "");
-      setBorrowerName(peripheralToEdit.borrowerName || "");
-      setDateLoaned(peripheralToEdit.dateLoaned?.slice(0, 10) || "");
-      setReturned(peripheralToEdit.returned || false);
-      setReturnedDate(peripheralToEdit.returnedDate?.slice(0, 10) || "");
+  if (isEditMode && peripheralToEdit) {
+    console.log("🧩 Editing peripheral:", peripheralToEdit);
+
+    setEquipment(peripheralToEdit.equipment || "");
+    setBorrowerName(peripheralToEdit.borrowerName || "");
+    setDateLoaned(peripheralToEdit.dateLoaned?.slice(0, 10) || "");
+
+    const returnedFlag = peripheralToEdit.returned || false;
+    setReturned(returnedFlag);
+    console.log("✅ returned flag:", returnedFlag);
+
+    if (peripheralToEdit.returnedDate) {
+      console.log("📦 Raw returnedDate from backend:", peripheralToEdit.returnedDate);
+
+      const isoDate = new Date(peripheralToEdit.returnedDate).toISOString().slice(0, 10);
+      console.log("📅 Formatted returnedDate for input:", isoDate);
+
+      setReturnedDate(isoDate);
     } else {
-      setEquipment("");
-      setBorrowerName("");
-      setDateLoaned("");
-      setReturned(false);
+      console.log("🚫 No returnedDate found — setting empty");
       setReturnedDate("");
     }
-  }, [isEditMode, peripheralToEdit]);
+  } else {
+    console.log("🆕 Creating new peripheral — clearing form");
+    setEquipment("");
+    setBorrowerName("");
+    setDateLoaned("");
+    setReturned(false);
+    setReturnedDate("");
+  }
+}, [isEditMode, peripheralToEdit]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+useEffect(() => {
+  console.log("🟡 returnedDate changed:", returnedDate);
+}, [returnedDate]);
 
-    const formData = {
-      equipment,
-      borrowerName,
-      dateLoaned,
-      returned,
-    };
 
-    if (returned && returnedDate) {
-      formData.returnedDate = returnedDate;
-    }
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    if (isEditMode) {
-      dispatch(updatePeripheralLoan({ id: peripheralToEdit._id, data: formData }));
-    } else {
-      dispatch(addPeripheralLoan(formData));
-    }
+  const now = new Date();
+
+  const [loanYear, loanMonth, loanDay] = dateLoaned.split("-").map(Number);
+  const rawLoanedDate = new Date(loanYear, loanMonth - 1, loanDay, now.getHours(), now.getMinutes(), now.getSeconds());
+
+  const formData = {
+    equipment,
+    borrowerName,
+    returned,
+    dateLoaned: rawLoanedDate.toISOString(),
   };
+
+  if (returned && returnedDate.trim() !== "") {
+    const [returnYear, returnMonth, returnDay] = returnedDate.split("-").map(Number);
+    const rawReturnedDate = new Date(returnYear, returnMonth - 1, returnDay, now.getHours(), now.getMinutes(), now.getSeconds());
+    formData.returnedDate = rawReturnedDate.toISOString();
+  } else {
+    console.log("⚠️ returnedDate not included in formData");
+  }
+
+  console.log("📤 Submitting formData:", formData);
+
+  if (isEditMode && peripheralToEdit?._id) {
+    dispatch(updatePeripheralLoan({ id: peripheralToEdit._id, data: formData }));
+  } else {
+    dispatch(addPeripheralLoan(formData));
+  }
+};
+
 
   useEffect(() => {
     if (message) {
       toast.success(message);
       dispatch(fetchAllPeripheralLoans());
-      onClose(); // Close popup after success
+      onClose();
     }
   }, [dispatch, message, onClose]);
 
@@ -108,9 +142,17 @@ const AddPeripheralPopup = ({ peripheralToEdit, onClose }) => {
               <input
                 type="checkbox"
                 checked={returned}
-                onChange={(e) => setReturned(e.target.checked)}
+                onChange={(e) => {
+                    const checked = e.target.checked;
+                    console.log("🟢 Checkbox toggled:", checked);
+                    setReturned(checked);
+                    if (!checked) {
+                    console.log("🔴 Checkbox unchecked — clearing returnedDate");
+                    setReturnedDate("");
+                    }
+                }}
                 id="returned"
-              />
+                />
               <label htmlFor="returned" className="text-sm font-medium text-gray-900">
                 Returned
               </label>
