@@ -3,10 +3,15 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  font-family: "Montserrat", serif;
-  font-optical-sizing: auto;
-  font-style: normal;
-  overflow-x: hidden;
+html {
   box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+body {
+  overflow-x: auto;
 }

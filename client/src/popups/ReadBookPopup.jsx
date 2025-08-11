@@ -17,20 +17,20 @@ const ReadBookPopup = ({book}) => {
 
         <div className='p-6'>
           <div className='mb-4'>
-            <label className='block text-gray-700 font-semibold'>Device Title</label>
+            <label className='block text-gray-700 font-semibold'>Manufacturer</label>
             <p className='border border-gray-300 rounded-lg px-4 py-2 bg-gray-100'>
-              {book && book.title}
+              {book?.manufacture || "N/A"}
             </p>
           </div>
           <div className='mb-4'>
-            <label className='block text-gray-700 font-semibold'>Device Author</label>
+            <label className='block text-gray-700 font-semibold'>Model Number</label>
             <p className='border border-gray-300 rounded-lg px-4 py-2 bg-gray-100'>
-              {book && book.author}
+              {book?.modelNumber || "N/A"}
             </p>
           </div><div className='mb-4'>
-            <label className='block text-gray-700 font-semibold'>Device Description</label>
+            <label className='block text-gray-700 font-semibold'>Service Tag</label>
             <p className='border border-gray-300 rounded-lg px-4 py-2 bg-gray-100'>
-              {book && book.description}
+              {book?.serviceTag ||"N/A"}
             </p>
           </div>
         </div>

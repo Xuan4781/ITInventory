@@ -4,7 +4,8 @@ import {isAuthorized, isAuthenticated} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 router.get("/all", isAuthenticated, isAuthorized("Admin"), getAllUsers);
-router.post("/add/new-admin", isAuthenticated, isAuthorized("Admin"), registerNewAdmin);
+router.post("/register-microsoft-admin", isAuthenticated, isAuthorized("Admin"), registerNewAdmin);
+
 
 
 export default router;

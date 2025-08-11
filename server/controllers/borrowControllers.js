@@ -1,114 +1,254 @@
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/errorMiddlewares.js";
 import { Book } from "../models/bookModel.js";
-import { Borrow} from "../models/borrowModel.js";
+import { Borrow } from "../models/borrowModel.js";
 import { User } from "../models/userModel.js";
-import { calculateFine } from "../utils/fineCalculator.js";
-export const recordBorrowedBook = catchAsyncErrors(async(req, res, next)=>{
-    const {id} = req.params;
-    const{email} = req.body;
-    const book = await Book.findById(id);
-    if(!book){
-        return next(new ErrorHandler("Book not found", 404));
-    }
-    const user = await User.findOne({email, accountVerified: true});
-    if(!user){
-        return next(new ErrorHandler("User not found", 404));
-    }
-    if(book.quantity === 0){
-        return next(new ErrorHandler("Book not available", 400));
-    }
-    const isAlreadyBorrowed = user.borrowedBooks.find(
-        b=> b.bookId.toString() === id && b.returned === false
-    );
-    if (isAlreadyBorrowed){
-        return next(new ErrorHandler("Book already borrowed", 400));
-    }
-    book.quantity -= 1;
-    book.availability = book.quantity > 0;
-    await book.save();
 
-    user.borrowedBooks.push({
-        bookId: book._id,
-        bookTitle: book.title,
-        borrowedDate: new Date(),
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    })
-    await user.save();
-    await Borrow.create({
-        user: {
-            id: user._id,
-            name: user.name,
-            email: user.email
-        },
-        book: book._id,
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        price: book.price
-    })
-    res.status(200).json({
-        success:true,
-        message: "Borrowed book recorded successfuly.",
-    })
-})
+// RECORD borrowed book
+export const recordBorrowedBook = catchAsyncErrors(async (req, res, next) => {
+  const currentUser = req.user;
 
-export const borrowedBooks = catchAsyncErrors(async(req, res, next)=>{
-    const {borrowedBooks} = req.user;
-    res.status(200).json({
-        success: true,
-        borrowedBooks,
-    });
+  if (!currentUser) {
+    return next(new ErrorHandler("User not found in system", 404));
+  }
 
-})
+  const {
+    bookId,
+    price,
+    office,
+    division,
+    costCenter,
+    userName,
+    shippedLocation,
+    procurementVendor,
+    manufacturer,
+    modelNumber,
+    serviceTag,
+    computerName,
+    unitCost,
+    preparedBy,
+    dateIssued,
+    datePurchased,
+    warrantyExpire,
+    currentAge,
+    monitor,
+    monitorDatePurchased,
+    monitorAge,
+    monitorSize,
+    monitorQuantity,
+    dockingStation,
+    laptopServiceTag,
+    dockingStationWarrantyExpire,
+    notes,
+    age2025,
+    age2026,
+    age2027,
+    age2028,
+    remainingPurchase2025,
+    plannedPurchase2026,
+    plannedPurchase2027,
+    plannedPurchase2028,
+    borrowDate,
+    dueDate,
+  } = req.body;
 
-export const getBorrowedBooksForAdmin = catchAsyncErrors(async(req, res, next)=>{
-    const borrowedBooks = await Borrow.find();
-    res.status(200).json({
-        success: true,
-        borrowedBooks,
-    });
+  const borrow = await Borrow.create({
+    user: {
+      id: currentUser._id,
+      name: currentUser.name || userName,
+      email: currentUser.email,
+    },
+    book: bookId,
+    price,
+    office,
+    division,
+    costCenter,
+    userName,
+    shippedLocation,
+    procurementVendor,
+    manufacturer,
+    modelNumber,
+    serviceTag,
+    computerName,
+    unitCost,
+    preparedBy,
+    dateIssued,
+    datePurchased,
+    warrantyExpire,
+    currentAge,
+    monitor,
+    monitorDatePurchased,
+    monitorAge,
+    monitorSize,
+    monitorQuantity,
+    dockingStation,
+    laptopServiceTag,
+    dockingStationWarrantyExpire,
+    notes,
+    age2025,
+    age2026,
+    age2027,
+    age2028,
+    remainingPurchase2025,
+    plannedPurchase2026,
+    plannedPurchase2027,
+    plannedPurchase2028,
+    borrowDate,
+    dueDate,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Borrowed device recorded successfully.",
+    borrow,
+  });
 });
 
-export const returnBorrowBook = catchAsyncErrors(async(req, res, next)=>{
-    const {bookId} = req.params;
-    const {email} = req.body;
-    const book = await Book.findById(bookId);
-    if(!book){
-        return next(new ErrorHandler("Book not found", 404));
-    }
-    const user = await User.findOne({email, accountVerified: true});
-    if(!user){
-        return next(new ErrorHandler("User not found", 404));
-    }
-    const borrowedBook = user.borrowedBooks.find(
-        b => b.bookId.toString() === bookId && b.returned === false);
-    if(!borrowedBook){
-        return next(new ErrorHandler("Book not borrowed.", 400));
-    }
-    borrowedBook.returned = true;
-    await user.save();
+// UPDATE borrow record
+export const updateBorrowRecord = catchAsyncErrors(async (req, res, next) => {
+  const currentUser = req.user;
 
-    book.quantity += 1;
-    book.availability = book.quantity > 0;
-    await book.save();
-    const borrow = await Borrow.findOne({
-        book: bookId,
-        "user.email": email,
-        returnDate: null,
-    });
-    if(!borrow){
-        return next(new ErrorHandler("Book not borrowed.", 400));
+  if (!currentUser || currentUser.role !== 'Admin') {
+    return next(new ErrorHandler("You do not have permission to update borrow records", 403));
+  }
+
+  const borrowId = req.params.id;
+  const updateData = req.body;
+
+  const borrow = await Borrow.findById(borrowId);
+  if (!borrow) {
+    return next(new ErrorHandler("Borrow record not found", 404));
+  }
+
+  Object.keys(updateData).forEach((key) => {
+    if (key !== "email" && key !== "userName") {
+      borrow[key] = updateData[key];
     }
-    borrow.returnDate = new Date();
-    const fine = calculateFine(borrow.dueDate);
-    borrow.fine = fine;
-    await borrow.save();
-    res.status(200).json({
-        success: true,
-        message: 
-            fine !== 0
-            ? `The book has been returned successfully. The total charges, including the fine, are $${
-                fine + book.price
-            }` 
-            : `The book has been returned sucessfully. The totla charges are $${book.price}`,
-    })
-    })
+  });
+
+  if (updateData.email) borrow.user.email = updateData.email;
+  if (updateData.userName) borrow.user.name = updateData.userName;
+
+  await borrow.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Borrow record updated successfully",
+    borrow,
+  });
+});
+
+// DELETE borrow record
+export const deleteBorrowRecord = catchAsyncErrors(async (req, res, next) => {
+  const currentUser = req.user;
+
+  if (!currentUser || currentUser.role !== 'Admin') {
+    return next(new ErrorHandler("You do not have permission to delete borrow records", 403));
+  }
+
+  const borrowId = req.params.id;
+  const borrow = await Borrow.findById(borrowId);
+
+  if (!borrow) {
+    return next(new ErrorHandler("Borrow record not found", 404));
+  }
+
+  await borrow.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: "Borrow record deleted successfully.",
+  });
+});
+
+// GET borrowed books for logged-in user
+export const borrowedBooks = catchAsyncErrors(async (req, res, next) => {
+  const currentUser = req.user;
+
+  if (!currentUser) {
+    return next(new ErrorHandler("User not found in system", 404));
+  }
+
+  const borrowedBooks = await Borrow.find({ "user.id": currentUser._id }).populate("book");
+
+  res.status(200).json({
+    success: true,
+    borrowedBooks,
+  });
+});
+
+// GET all borrowed books for Admin
+export const getBorrowedBooksForAdmin = catchAsyncErrors(async (req, res, next) => {
+  const currentUser = req.user;
+
+  if (!currentUser || currentUser.role !== 'Admin') {
+    return next(new ErrorHandler("You do not have permission to view all borrow records", 403));
+  }
+
+  const borrowedBooks = await Borrow.find()
+    .populate("book")
+    .populate("user.id", "email name microsoftId");
+
+  res.status(200).json({
+    success: true,
+    borrowedBooks,
+  });
+});
+
+// RETURN borrowed book
+export const returnBorrowBook = catchAsyncErrors(async (req, res, next) => {
+  const currentUser = req.user;
+
+  if (!currentUser) {
+    return next(new ErrorHandler("User not found in system", 404));
+  }
+
+  const { bookId } = req.params;
+  const { targetUserEmail } = req.body;
+  const email = targetUserEmail || currentUser.email;
+
+  if (targetUserEmail && targetUserEmail !== currentUser.email && currentUser.role !== 'Admin') {
+    return next(new ErrorHandler("You do not have permission to return books for other users", 403));
+  }
+
+  const book = await Book.findById(bookId);
+  if (!book) {
+    return next(new ErrorHandler("Book not found", 404));
+  }
+
+  const user = await User.findOne({ email, accountVerified: true });
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  const borrowedBook = user.borrowedBooks.find(
+    (b) => b.bookId.toString() === bookId && b.returned === false
+  );
+  if (!borrowedBook) {
+    return next(new ErrorHandler("Book not borrowed.", 400));
+  }
+
+  borrowedBook.returned = true;
+  await user.save();
+
+  book.quantity += 1;
+  book.availability = book.quantity > 0;
+  await book.save();
+
+  const borrow = await Borrow.findOne({
+    book: bookId,
+    "user.email": email,
+    returnDate: null,
+  });
+  if (!borrow) {
+    return next(new ErrorHandler("Book not borrowed.", 400));
+  }
+
+  borrow.returnDate = new Date();
+  await borrow.save();
+
+  res.status(200).json({
+    success: true,
+    message: `The book has been returned successfully. The total charges are $${book.price}`,
+  });
+});

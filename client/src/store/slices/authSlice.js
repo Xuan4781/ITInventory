@@ -1,197 +1,81 @@
-import {createSlice} from "@reduxjs/toolkit"
-import axios from "axios"
+import { createSlice } from "@reduxjs/toolkit";
+
+// Retrieve persisted auth state from localStorage
+const storedUser = localStorage.getItem("user");
+const storedToken = localStorage.getItem("accessToken");
+
+const initialState = {
+  loading: false,
+  error: null,
+  user: storedUser ? JSON.parse(storedUser) : null,
+  accessToken: storedToken || null,
+  isAuthenticated: !!storedToken,
+  loggedOut: false, // ✅ NEW
+};
+
 
 const authSlice = createSlice({
-    name: "auth",
-    initialState: {
-        loading: false,
-        error: null,
-        message: null,
-        user: null,
-        isAuthenticated: false,
+  name: "auth",
+  initialState,
+  reducers: {
+    // ✅ Set user and token after login
+    setUser(state, action) {
+      const { user, accessToken } = action.payload;
+      state.user = user;
+      state.accessToken = accessToken;
+      state.isAuthenticated = true;
+      state.error = null;
+      state.loading = false;
+
+      // Persist to localStorage
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("accessToken", accessToken);
     },
-    reducers:{
-        registerRequest(state){
-            state.loading = true;
-            state.error = null;
-            state.message = null;
-        },
-        registerSuccess(state, action){
-            state.loading = false;
-            state.message = action.payload.message;
-        },
-        registerFailed(state, action){
-            state.loading = false;
-            state.error = action.payload;
-        },
-        OTPVerificationRequest(state){
-            state.loading = true;
-            state.error = null;
-            state.message = null;
-        },
-        OTPVerificationSuccess(state, action){
-            state.loading = false;
-            state.message = action.payload.message;
-            state.isAuthenticated = true;
-            state.user=action.payload.user;
 
-        },
-        OTPVerificationFailed(state, action){
-            state.loading = false;
-            state.error = action.payload;
-        },
-        loginRequest(state){
-            state.loading = true;
-            state.error = null;
-            state.message = null;
-        },
-        loginSuccess(state, action){
-            state.loading = false;
-            state.message = action.payload.message;
-            state.isAuthenticated = true;
-            state.user=action.payload.user;
+    // ✅ Clear user and token on logout
+    logout(state) {
+  state.user = null;
+  state.accessToken = null;
+  state.isAuthenticated = false;
+  state.loggedOut = true; // ✅ NEW
+  state.error = null;
+  state.loading = false;
+  localStorage.removeItem("user");
+  localStorage.removeItem("accessToken");
+},
 
-        },
-        loginFailed(state, action){
-            state.loading = false;
-            state.error = action.payload;
-        },
-        logoutRequest(state){
-            state.loading = true;
-            state.message = null;
-            state.error = null;
-        },
-        logoutSuccess(state, action){
-            state.loading = false;
-            state.message = action.payload.message;
-            state.isAuthenticated = false;
-            state.user=null;
-        },
-        logoutFailed(state, action){
-            state.loading = false;
-            state.error = action.payload;
-            state.message = null;
-        },
-        getUserRequest(state){
-            state.loading = true;
-            state.error = null;
-            state.message = null;
-        },
-        getUserSuccess(state, action){
-            state.loading = false;
-            state.user = action.payload.user;
-            state.isAuthenticated = true;
-        },
-        getUserFailed(state){
-            state.loading = false;
-            state.user = null;
-            state.isAuthenticated = false;
-        },
-        forgotPasswordRequest(state){
-            state.loading = true;
-            state.error = null;
-            state.message = null;
-        },
-        forgotPasswordSuccess(state, action){
-            state.loading = false;
-            state.user = action.payload.message;
-        },
-        forgotPasswordFailed(state, action){
-            state.loading = false;
-            state.error = action.payload;
-            
-        },
 
-        resetAuthSlice(state){
-            state.error = null;
-            state.loading = false;
-            state.message = null;
-            state.user = state.user;
-            state.isAuthenticated = state.isAuthenticated;
-        }
+
+    // ✅ Set loading state manually
+    setLoading(state, action) {
+      state.loading = action.payload;
     },
+
+    // ✅ Clear only the user object (optional)
+    clearUser(state) {
+      state.user = null;
+    },
+
+    // ✅ Set error message
+    setError(state, action) {
+      state.error = action.payload;
+      state.loading = false;
+    },
+
+    // ✅ Clear error message
+    clearError(state) {
+      state.error = null;
+    },
+  },
 });
-export const resetAuthSlice = () => (dispatch) => {
-    dispatch(authSlice.actions.resetAuthSlice())
-}
-export const register = (data) => async(dispatch) => {
-    dispatch(authSlice.actions.registerRequest())
-    await axios.post("http://localhost:4000/api/v1/auth/register", data, {
-        withCredentials: true,
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }).then(res=>{
-        dispatch(authSlice.actions.registerSuccess(res.data))
-    }).catch(error=>{
-        dispatch(authSlice.actions.registerFailed(error.response.data.message))
-    })
-};
-export const OTPVerification = (email, otp) => async(dispatch) => {
-    dispatch(authSlice.actions.OTPVerificationRequest())
-    await axios.post("http://localhost:4000/api/v1/auth/verify-otp", {email, otp}, {
-        withCredentials: true,
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }).then(res=>{
-        dispatch(authSlice.actions.OTPVerificationSuccess(res.data))
-    }).catch(error=>{
-        dispatch(authSlice.actions.OTPVerificationFailed(error.response.data.message))
-    })
-};
-export const login = (data) => async(dispatch) => {
-    dispatch(authSlice.actions.loginRequest())
-    await axios.post("http://localhost:4000/api/v1/auth/login", 
-        data, 
-        {
-        withCredentials: true,
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }).then(res=>{
-        dispatch(authSlice.actions.loginSuccess(res.data))
-    }).catch(error=>{
-        dispatch(authSlice.actions.loginFailed(error.response.data.message))
-    })
-};
-export const logout = () => async(dispatch) => {
-    dispatch(authSlice.actions.logoutRequest())
-    await axios.get("http://localhost:4000/api/v1/auth/logout", {
-        withCredentials: true,
-    }).then(res=>{
-        dispatch(authSlice.actions.logoutSuccess(res.data.message))
-        dispatch(authSlice.actions.resetAuthSlice())
-    }).catch(error=>{
-        dispatch(authSlice.actions.logoutFailed(error.response.data.message))
-    })
-};
-export const getUser = () => async(dispatch) => {
-    dispatch(authSlice.actions.getUserRequest())
-    await axios.get("http://localhost:4000/api/v1/auth/me", {
-        withCredentials: true,
-    }).then((res)=>{
-        dispatch(authSlice.actions.getUserSuccess(res.data))
-        dispatch(authSlice.actions.resetAuthSlice())
-    }).catch((error)=>{
-        dispatch(authSlice.actions.getUserFailed(error.response.data.message))
-    })
-};
-export const forgotPassword = (email) => async(dispatch) => {
-    dispatch(authSlice.actions.forgotPasswordRequest())
-    await axios.post("http://localhost:4000/api/v1/auth/password/forgot", 
-        {email}, 
-        {
-        withCredentials: true,
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }).then(res=>{
-        dispatch(authSlice.actions.forgotPasswordSuccess(res.data))
-    }).catch(error=>{
-        dispatch(authSlice.actions.forgotPasswordFailed(error.response.data.message))
-    })
-};
 
+export const {
+  setUser,
+  logout,
+  setLoading,
+  clearUser,
+  setError,
+  clearError,
+} = authSlice.actions;
 
 export default authSlice.reducer;
