@@ -6,9 +6,9 @@ const requestSchema = new mongoose.Schema({
     name: String,
     email: String,
   },
-  category: {
-    type: String,
-    enum: ['Headset', 'Mouse', 'Keyboard', 'Charger'],
+  device: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Book", 
     required: true,
   },
   status: {
@@ -17,6 +17,11 @@ const requestSchema = new mongoose.Schema({
     default: 'Pending',
   },
   notes: String, // optional user notes
+  peripheralLoanId: {              // ✅ link to peripheral loan
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PeripheralLoan",
+    default: null,
+  },
 }, { timestamps: true });
 
 export const Request = mongoose.model("Request", requestSchema);

@@ -13,7 +13,8 @@ export const updateRequestStatus = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Invalid status", 400));
   }
 
-  const request = await Request.findById(id);
+  // Populate device to get its name
+  const request = await Request.findById(id).populate("device");
   if (!request) {
     return next(new ErrorHandler("Request not found", 404));
   }
@@ -28,7 +29,7 @@ export const updateRequestStatus = catchAsyncErrors(async (req, res, next) => {
 
   if (status === "Approved") {
     peripheralLoan = await PeripheralLoan.create({
-      equipment: request.category,
+      equipment: request.device.name || request.device,
       borrowerName: request.user.name,
       dateLoaned: new Date(),
       returned: false,
@@ -43,3 +44,29 @@ export const updateRequestStatus = catchAsyncErrors(async (req, res, next) => {
     peripheralLoan,
   });
 });
+
+
+
+export const createRequest = catchAsyncErrors(async (req, res, next) => {
+  const { deviceId, notes } = req.body;
+
+  if (!deviceId) {
+    return next(new ErrorHandler("Device ID is required.", 400));
+  }
+
+  const request = await Request.create({
+    user: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+    },
+    device: deviceId,
+    notes,
+  });
+
+  res.status(201).json({
+    success: true,
+    request,
+  });
+});
+

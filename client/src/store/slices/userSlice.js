@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { toggleAddNewAdminPopup } from "./popUpSlice";
 
 // Axios instance with token interceptor
 const api = axios.create({
@@ -33,25 +32,6 @@ export const fetchAllUsers = createAsyncThunk(
   }
 );
 
-// Async thunk for adding a new admin
-export const addNewAdmin = createAsyncThunk(
-  "user/addNewAdmin",
-  async (formData, thunkAPI) => {
-    try {
-      const res = await api.post("/user/register-microsoft-admin", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success(res.data.message);
-      thunkAPI.dispatch(toggleAddNewAdminPopup());
-      return res.data.admin;
-    } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message;
-      toast.error(errorMsg);
-      return thunkAPI.rejectWithValue(errorMsg);
-    }
-  }
-);
-
 
 const userSlice = createSlice({
   name: "user",
@@ -78,23 +58,6 @@ const userSlice = createSlice({
         state.users = action.payload;
       })
       .addCase(fetchAllUsers.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      // addNewAdmin
-      .addCase(addNewAdmin.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(addNewAdmin.fulfilled, (state, action) => {
-        state.loading = false;
-        // Optionally add the new admin to users list:
-        if (action.payload) {
-          state.users.push(action.payload);
-        }
-      })
-      .addCase(addNewAdmin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

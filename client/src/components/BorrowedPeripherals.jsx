@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Trash2, Pencil } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -12,14 +12,33 @@ import Sidebar from "../layout/SideBar";
 import Header from "../layout/Header";
 import AddPeripheralPopup from "../popups/AddPeripheralPopup";
 
+// small debounce helper so we don't filter on every keystroke instantly
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 const BorrowedPeripherals = () => {
   const dispatch = useDispatch();
-  const { peripherals, loading, error, message } = useSelector((state) => state.peripheral);
+  const { peripherals, loading, error, message } = useSelector(
+    (state) => state.peripheral
+  );
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const { addPeripheralPopup } = useSelector((state) => state.popup);
 
   const [searchedKeyword, setSearchedKeyword] = useState("");
   const [peripheralToEdit, setPeripheralToEdit] = useState(null);
+
+  // debounce search term by 200ms
+  const debouncedSearch = useDebounce(searchedKeyword.toLowerCase(), 200);
 
   useEffect(() => {
     dispatch(fetchAllPeripheralLoans());
@@ -38,7 +57,7 @@ const BorrowedPeripherals = () => {
   }, [dispatch, message, error]);
 
   const handleSearch = (e) => {
-    setSearchedKeyword(e.target.value.toLowerCase());
+    setSearchedKeyword(e.target.value);
   };
 
   const handleDeletePeripheral = (id) => {
@@ -57,11 +76,15 @@ const BorrowedPeripherals = () => {
     dispatch(toggleAddPeripheralPopup());
   };
 
-  const filteredPeripherals = peripherals.filter(
-    (item) =>
-      item.equipment?.toLowerCase().includes(searchedKeyword) ||
-      item.borrowerName?.toLowerCase().includes(searchedKeyword)
-  );
+  // memoized filter so it only recalculates when peripherals or search change
+  const filteredPeripherals = useMemo(() => {
+    if (!peripherals) return [];
+    return peripherals.filter(
+      (item) =>
+        item.equipment?.toLowerCase().includes(debouncedSearch) ||
+        item.borrowerName?.toLowerCase().includes(debouncedSearch)
+    );
+  }, [peripherals, debouncedSearch]);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -74,8 +97,8 @@ const BorrowedPeripherals = () => {
           <Header />
         </div>
 
-        <main className="flex-1 p-6 pt-20 overflow-y-auto">
-          <section className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <main className="flex-1 p-6 pt-20 overflow-y-auto will-change-transform">
+          <section className="sticky top-[-20px] z-10 bg-white pb-4 pl-5 pr-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm">
             <h2 className="text-xl font-medium md:text-2xl md:font-semibold">
               Borrowed Peripherals
             </h2>
@@ -129,13 +152,27 @@ const BorrowedPeripherals = () => {
                 </thead>
                 <tbody>
                   {filteredPeripherals.map((item, index) => (
-                    <tr key={item._id} className={(index + 1) % 2 === 0 ? "bg-gray-50" : ""}>
+                    <tr
+                      key={item._id}
+                      className={(index + 1) % 2 === 0 ? "bg-gray-50" : ""}
+                    >
                       <td className="px-4 py-2">{item.equipment}</td>
                       <td className="px-4 py-2">{item.borrowerName}</td>
-                      <td className="px-4 py-2">{new Date(item.dateLoaned).toLocaleDateString("en-US", {timeZone: "America/New_York",})}</td>
-                      <td className="px-4 py-2">{item.returned ? "Yes" : "No"}</td>
                       <td className="px-4 py-2">
-                        {item.returnedDate ? new Date(item.returnedDate).toLocaleDateString("en-US", {timeZone: "America/New_York"}) : "—"}
+                        {new Date(item.dateLoaned).toLocaleDateString("en-US", {
+                          timeZone: "America/New_York",
+                        })}
+                      </td>
+                      <td className="px-4 py-2">
+                        {item.returned ? "Yes" : "No"}
+                      </td>
+                      <td className="px-4 py-2">
+                        {item.returnedDate
+                          ? new Date(item.returnedDate).toLocaleDateString(
+                              "en-US",
+                              {}
+                            )
+                          : "—"}
                       </td>
                       {isAuthenticated && user?.role === "Admin" && (
                         <td className="px-4 py-2 flex space-x-2 justify-center">

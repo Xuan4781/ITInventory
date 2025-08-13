@@ -67,6 +67,35 @@ export const updateRequestStatus = createAsyncThunk(
     }
   }
 );
+export const createPeripheralRequest = createAsyncThunk(
+  "requests/createPeripheralRequest",
+  async ({ deviceId, notes }, thunkAPI) => {
+    try {
+      const response = await api.post("/requests", { deviceId, notes });
+      return response.data.request;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Failed to create request"
+      );
+    }
+  }
+);
+export const deleteRequest = createAsyncThunk(
+  "requests/deleteRequest",
+  async (id, { rejectWithValue }) => {
+    try {
+      const { data } = await api.delete(`/requests/${id}`);
+      // Return the updated request (status = Denied) if admin
+      return data.request || id; 
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+
+
+
 
 // Slice
 const requestSlice = createSlice({
@@ -109,6 +138,33 @@ const requestSlice = createSlice({
       .addCase(updateRequestStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
+      })
+      
+      .addCase(createPeripheralRequest.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPeripheralRequest.fulfilled, (state, action) => {
+        state.loading = false;
+        state.requests.push(action.payload); // add the newly created request
+      })
+      .addCase(createPeripheralRequest.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteRequest.fulfilled, (state, action) => {
+        const updatedRequest = action.payload;
+        // if payload is object (admin denial), update in array
+        if (typeof updatedRequest === "object" && updatedRequest._id) {
+          const idx = state.requests.findIndex(r => r._id === updatedRequest._id);
+          if (idx !== -1) state.requests[idx] = updatedRequest;
+        } else {
+          // if payload is just ID (user delete), remove
+          state.requests = state.requests.filter(r => r._id !== updatedRequest);
+        }
+      })
+      .addCase(deleteRequest.rejected, (state, action) => {
+        state.error = action.payload;
       })
       .addCase(updateRequestStatus.fulfilled, (state, action) => {
         state.loading = false;

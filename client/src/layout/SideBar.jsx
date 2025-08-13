@@ -4,17 +4,17 @@ import logoutIcon from "../assets/logout.png";
 import closeIcon from "../assets/white-close-icon.png";
 import dashboardIcon from "../assets/pip.svg";
 import bookIcon from "../assets/laptop.svg";
-import catalogIcon from "../assets/catalog.png";
+import catalogIcon from "../assets/card-list.svg";
 import usersIcon from "../assets/people.png";
 import { RiAdminFill } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
 import { toast } from "react-toastify";
-import { toggleAddNewAdminPopup } from "../store/slices/popUpSlice";
-import AddNewAdmin from "../popups/AddNewAdmin";
 import { useNavigate } from "react-router-dom";
 import { Laptop } from "lucide-react";
+import BorrowedPeripherals from "../assets/headset.svg"
 import { useMsal } from "@azure/msal-react";
+import ManageIcon from "../assets/app-indicator.svg"
 
 const SideBar = () => {
   const navigate = useNavigate();
@@ -23,18 +23,25 @@ const SideBar = () => {
 
   const [isSideBarOpen, setIsSideBarOpen] = useState(true);
   const [selectedComponent, setSelectedComponent] = useState("Dashboard");
-
-  const { addNewAdminPopup, settingPopup } = useSelector((state) => state.popup);
   const { error, message, user, isAuthenticated } = useSelector((state) => state.auth);
 
   const handleLogout = () => {
-  dispatch(logout()); // sets loggedOut: true + clears localStorage
+  // 1. Clear Redux user state
+  dispatch(logout());
+
+  // 2. Clear any localStorage tokens
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+
   toast.info("Logged out successfully");
 
+  // 3. Log out via MSAL
   instance.logoutRedirect({
-    postLogoutRedirectUri: "/login",
+    // Make sure this matches the route that serves your static login page
+    postLogoutRedirectUri: window.location.origin + "/login",
   });
-};
+  };
+
 
 
 
@@ -97,37 +104,19 @@ const SideBar = () => {
               </button>
 
               <button
-                className={`w-full py-2 font-medium bg-transparent rounded-md flex items-center space-x-2 ${
-                  selectedComponent === "Users" ? "bg-gray-300 text-black" : "text-black"
-                }`}
-                onClick={() => {
-                  setSelectedComponent("Users");
-                  navigate("/users");
-                }}
-              >
-                <img src={usersIcon} alt="users-icon" />
-                <span>Users</span>
-              </button>
-
-              <button
-                className="w-full py-2 font-medium bg-transparent rounded-md flex items-center space-x-2 text-black"
-                onClick={() => dispatch(toggleAddNewAdminPopup())}
-              >
-                <RiAdminFill className="w-6 h-6" />
-                <span>Add New Admin</span>
-              </button>
-
-              <button
                 className="w-full py-2 font-medium bg-transparent rounded-md flex items-center space-x-2 text-black"
                 onClick={() => navigate("/borrowed-peripherals")}
               >
+                <img src ={BorrowedPeripherals} alt="borrowed-peripherals" />
                 <span>Borrowed Peripherals</span>
+          
               </button>
 
               <button
                 className="w-full py-2 font-medium bg-transparent rounded-md flex items-center space-x-2 text-black"
                 onClick={() => navigate("/manage-requests")}
               >
+                <img src={ManageIcon} alt="managerequest-icon"/>
                 <span>Manage Requests</span>
               </button>
             </>
@@ -173,7 +162,6 @@ const SideBar = () => {
         />
       </aside>
 
-      {addNewAdminPopup && <AddNewAdmin />}
     </>
   );
 };

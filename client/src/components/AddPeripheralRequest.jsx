@@ -1,165 +1,92 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchAllBooks } from "../store/slices/bookSlice";
+import { createPeripheralRequest, fetchUserRequests } from "../store/slices/requestSlice";
 import { toast } from "react-toastify";
-import Header from "../layout/Header";       // Adjust paths as needed
-import SideBar from "../layout/SideBar";
-import { HiMenu } from "react-icons/hi";
+import Header from "../layout/Header";
+import Sidebar from "../layout/SideBar";
 
-const api = axios.create({
-  baseURL: "http://localhost:4000/api",
-  withCredentials: true,
-});
+export default function AddPeripheralRequestPage() {
+  const dispatch = useDispatch();
+  const { books = [] } = useSelector((state) => state.book); // safe default
+  const { loading } = useSelector((state) => state.requests);
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-const AddPeripheralRequest = ({ onSuccess }) => {
-  const [category, setCategory] = useState("");
+  const [deviceId, setDeviceId] = useState("");
   const [notes, setNotes] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // Sidebar state
-  const [isSideBarOpen, setIsSideBarOpen] = useState(window.innerWidth >= 768);
-  const [selectedComponent, setSelectedComponent] = useState("PeripheralRequest");
-
-  // Handle window resize to auto-toggle sidebar for responsiveness
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsSideBarOpen(true);
-      } else {
-        setIsSideBarOpen(false);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Prevent background scroll when sidebar is open on mobile
-  useEffect(() => {
-    if (isSideBarOpen && window.innerWidth < 768) {
-      document.body.classList.add("overflow-hidden");
-    } else {
-      document.body.classList.remove("overflow-hidden");
-    }
-  }, [isSideBarOpen]);
+    dispatch(fetchAllBooks());
+  }, [dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!category) {
-      return toast.error("Please select a device category");
-    }
+    if (!deviceId) return;
+
     try {
-      setLoading(true);
-      const body = { category, notes };
-      await api.post("/requests", body);
-      toast.success("Peripheral request submitted successfully!");
-      setCategory("");
+      await dispatch(createPeripheralRequest({ deviceId, notes })).unwrap();
+      toast.success("Peripheral request created!");
+      setDeviceId("");
       setNotes("");
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
-    } finally {
-      setLoading(false);
+      dispatch(fetchUserRequests()); // refresh your requests table if needed
+    } catch (err) {
+      toast.error(err || "Failed to create request");
     }
   };
 
-  const toggleSidebar = () => setIsSideBarOpen(!isSideBarOpen);
-
   return (
-    <div className="flex min-h-screen bg-gray-100 relative">
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div
-        className={`fixed top-0 left-0 h-full z-40 w-64 bg-white shadow-lg
-          transform transition-transform duration-300 ease-in-out
-          ${isSideBarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0 md:relative md:shadow-none`}
-      >
-        <SideBar
-          isSideBarOpen={isSideBarOpen}
-          setIsSideBarOpen={setIsSideBarOpen}
-          setSelectedComponent={setSelectedComponent}
-        />
+      <div className="w-64 flex-shrink-0">
+        <Sidebar />
       </div>
 
-      {/* Overlay behind sidebar on mobile */}
-      {isSideBarOpen && window.innerWidth < 768 && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={() => setIsSideBarOpen(false)}
-        />
-      )}
-
       {/* Main content */}
-      <div
-        className={`flex flex-col flex-1 transition-all duration-300 ease-in-out
-          ${isSideBarOpen ? "md:ml-64" : "md:ml-0"}`}
-      >
-        {/* Header (hide on small screens) */}
-        <div className="hidden md:block">
-          <Header />
-        </div>
+      <div className="flex flex-col flex-1 overflow-auto">
+        <Header />
 
-        {/* Hamburger button (mobile only) */}
-        <button
-          className="fixed top-4 left-4 z-50 p-2 bg-black text-white rounded-md shadow-md md:hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-          onClick={toggleSidebar}
-          aria-label="Toggle sidebar"
-        >
-          <HiMenu size={24} />
-        </button>
-
-        <main className="relative flex-1 p-6 pt-20 overflow-auto">
-          <header className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-6">
-            <h2 className="text-xl font-semibold md:text-2xl">Peripheral Request</h2>
+        <main className="p-6 pt-28">
+          <header className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
+            <h2 className="text-xl font-medium md:text-2xl md:font-semibold">
+              Request Peripheral
+            </h2>
           </header>
 
-          <div className="max-w-xl bg-white rounded-lg shadow-lg p-6 mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block mb-1 font-medium">Peripheral Category</label>
+          <div className="mt-6 rounded-md shadow-lg bg-white p-6 max-w-3xl">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col">
+                <label className="font-semibold mb-1">Select Peripheral:</label>
                 <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  disabled={loading}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  value={deviceId}
+                  onChange={(e) => setDeviceId(e.target.value)}
+                  required
+                  className="border rounded-md px-3 py-2 w-full text-black"
                 >
-                  <option value="">Select a device</option>
-                  <option value="Headset">Headset</option>
-                  <option value="Mouse">Mouse</option>
-                  <option value="Keyboard">Keyboard</option>
-                  <option value="Charger">Charger</option>
+                  <option value="">-- Select --</option>
+                  {books.map((book) => (
+                    <option key={book._id} value={book._id}>
+                      {book.name} — {book.modelNumber}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              <div>
-                <label className="block mb-1 font-medium">Notes (optional)</label>
+              <div className="flex flex-col">
+                <label className="font-semibold mb-1">Notes:</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  className="border rounded-md px-3 py-2 w-full text-black"
+                  placeholder="Optional notes..."
                   rows={4}
-                  disabled={loading}
-                  className="w-full border border-gray-300 rounded px-3 py-2 resize-y"
-                  placeholder="Additional details or reason for request"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-2 px-4 rounded text-white transition ${
-                  loading ? "bg-gray-400" : "bg-black hover:bg-gray-900"
-                }`}
+                className="bg-black text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-800 w-full sm:w-40 disabled:opacity-50"
               >
-                {loading ? "Submitting..." : "Submit Request"}
+                {loading ? "Requesting..." : "Request"}
               </button>
             </form>
           </div>
@@ -167,6 +94,4 @@ const AddPeripheralRequest = ({ onSuccess }) => {
       </div>
     </div>
   );
-};
-
-export default AddPeripheralRequest;
+}

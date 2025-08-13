@@ -1,7 +1,8 @@
 import express from 'express';
 import { Request } from '../models/requestModel.js';
 import { isAuthenticated, isAuthorized } from '../middlewares/authMiddleware.js';
-import {updateRequestStatus} from "../controllers/requestController.js"
+import { updateRequestStatus } from "../controllers/requestController.js";
+
 const router = express.Router();
 
 /**
@@ -10,11 +11,10 @@ const router = express.Router();
  */
 router.post('/', isAuthenticated, async (req, res) => {
   try {
-    const { category, notes } = req.body;
+    const { deviceId, notes } = req.body;
 
-    const validCategories = ['Headset', 'Mouse', 'Keyboard', 'Charger'];
-    if (!category || !validCategories.includes(category)) {
-      return res.status(400).json({ success: false, message: 'Invalid or missing category' });
+    if (!deviceId) {
+      return res.status(400).json({ success: false, message: 'Device ID is required' });
     }
 
     const user = req.user;
@@ -28,7 +28,7 @@ router.post('/', isAuthenticated, async (req, res) => {
         name: user.name,
         email: user.email,
       },
-      category,
+      device: deviceId,
       notes: notes || '',
       status: 'Pending',
     });
@@ -53,7 +53,10 @@ router.get('/my', isAuthenticated, async (req, res) => {
       return res.status(401).json({ success: false, message: 'User not authenticated' });
     }
 
-    const requests = await Request.find({ 'user.id': user._id }).sort({ createdAt: -1 });
+    const requests = await Request.find({ 'user.id': user._id })
+      .sort({ createdAt: -1 })
+      .populate("device"); // populate device name
+
     res.status(200).json({ success: true, requests });
   } catch (error) {
     console.error('Error fetching user requests:', error);
@@ -67,7 +70,10 @@ router.get('/my', isAuthenticated, async (req, res) => {
  */
 router.get('/', isAuthenticated, isAuthorized('Admin'), async (req, res) => {
   try {
-    const requests = await Request.find().sort({ createdAt: -1 });
+    const requests = await Request.find()
+      .sort({ createdAt: -1 })
+      .populate("device"); // populate device name
+
     res.status(200).json({ success: true, requests });
   } catch (error) {
     console.error('Error fetching all requests:', error);
@@ -80,6 +86,28 @@ router.get('/', isAuthenticated, isAuthorized('Admin'), async (req, res) => {
  * @desc    Update request status (Admin only)
  */
 router.put('/:id', isAuthenticated, isAuthorized('Admin'), updateRequestStatus);
+
+/**
+ * @route   DELETE /api/requests/:id
+ * @desc    Delete a request (User can delete own, Admin can delete any)
+ */
+router.delete('/:id', isAuthenticated, isAuthorized('Admin'), async (req, res) => {
+  try {
+    const request = await Request.findById(req.params.id);
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+
+    // Admin can delete regardless of status
+    await request.deleteOne();
+
+    res.status(200).json({ success: true, message: "Request deleted from database successfully", requestId: request._id });
+  } catch (error) {
+    console.error("Error deleting request:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 
 
 export default router;

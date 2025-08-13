@@ -13,17 +13,16 @@ const MicrosoftLoginButton = () => {
 
   const handleLogin = async () => {
     try {
+      // 🔐 Microsoft popup login
       const loginResponse = await instance.loginPopup({ scopes: ["user.read"] });
       const email = loginResponse.account.username;
 
-      const accessTokenRequest = {
+      const tokenResponse = await instance.acquireTokenSilent({
         scopes: ["api://5f7af1dd-bdea-4fbe-9947-b5142c66e7ef/access_as_user"],
         account: loginResponse.account,
-      };
+      });
 
-      const tokenResponse = await instance.acquireTokenSilent(accessTokenRequest);
       const accessToken = tokenResponse.accessToken;
-
       localStorage.setItem("accessToken", accessToken);
 
       const role = admins.includes(email) ? "Admin" : "User";
@@ -31,14 +30,17 @@ const MicrosoftLoginButton = () => {
 
       toast.success(`Logged in as ${email} (${role})`);
       navigate(role === "Admin" ? "/manage-requests" : "/my-requests");
-    } catch (error) {
-      toast.error("Login failed or cancelled");
-      console.error("MSAL login error:", error);
+    } catch (err) {
+      toast.error("Login failed. Try again.");
+      console.error("MSAL login error:", err);
     }
   };
 
   return (
-    <button onClick={handleLogin} className="your-button-styles">
+    <button
+      onClick={handleLogin}
+      className="w-full bg-[#0078D4] hover:bg-[#005a9e] text-white font-semibold py-2 px-4 rounded shadow-md transition-colors"
+    >
       Sign in with Microsoft
     </button>
   );
